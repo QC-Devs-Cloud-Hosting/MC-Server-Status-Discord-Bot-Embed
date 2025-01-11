@@ -1,0 +1,36 @@
+{
+    "main_servers": [
+        {
+            "name": "",
+            "ip": "",
+            "port": 0
+        },
+        {
+            "name": "",
+            "ip": "",
+            "port": 0
+        },
+        {
+            "name": "",
+            "ip": "",
+            "port": 0
+        },
+        {
+            "name": "",
+            "ip": "",
+            "port": 0
+        }
+    ],
+    "additional_information": [
+        {
+            "name": "",
+            "ip": "",
+            "port": 0
+        },
+        {
+            "name": "",
+            "ip": "",
+            "port": 0
+        }
+    ]
+}
