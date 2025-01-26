@@ -75,7 +75,7 @@ async function updateEmbed() {
     let embedMessage;
 
     const mainServerStatuses = await Promise.all(
-        serverConfig.main_servers.map(server => getServerStatus(server.ip, server.port, server.type))
+        serverConfig.servers.map(server => getServerStatus(server.ip, server.port, server.type))
     );
 
     const currentTime = formatTime(new Date());
@@ -90,7 +90,7 @@ async function updateEmbed() {
     embed.addFields({
         name: "Server Status",
         value: mainServerStatuses.map((status, index) => {
-            const server = serverConfig.main_servers[index];
+            const server = serverConfig.servers[index];
             return `${server.name}:\n` + 
                    `IP: \`${server.ip}:${server.port}\`\n` + 
                    `${status.online ? "🟢 Online" : "🔴 Offline"}`;
