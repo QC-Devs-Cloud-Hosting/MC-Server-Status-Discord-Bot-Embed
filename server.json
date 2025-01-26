@@ -1,36 +1,6 @@
 {
-    "main_servers": [
-        {
-            "name": "",
-            "ip": "",
-            "port": 0
-        },
-        {
-            "name": "",
-            "ip": "",
-            "port": 0
-        },
-        {
-            "name": "",
-            "ip": "",
-            "port": 0
-        },
-        {
-            "name": "",
-            "ip": "",
-            "port": 0
-        }
-    ],
-    "additional_information": [
-        {
-            "name": "",
-            "ip": "",
-            "port": 0
-        },
-        {
-            "name": "",
-            "ip": "",
-            "port": 0
-        }
-    ]
+  "servers": [
+    { "name": "Java Server", "ip": "java.william2sober.us.kg", "port": 25584, "type": "Java" },
+    { "name": "Bedrock Server", "ip": "bedrock.william2sober.us.kg", "port": 25790, "type": "Bedrock" }
+  ]
 }
