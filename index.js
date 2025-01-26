@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
+const { Client, GatewayIntentBits, EmbedBuilder, SlashCommandBuilder } = require("discord.js");
 const { token, channelId } = require("./config.json");
 const fs = require("fs");
 const { status } = require("minecraft-server-util");
@@ -93,7 +93,7 @@ async function updateEmbed() {
             const server = serverConfig.servers[index];
             return `${server.name}:\n` + 
                    `IP: \`${server.ip}:${server.port}\`\n` + 
-                   `${status.online ? "🟢 Online" : "🔴 Offline"}`;
+                   `${status.online ? "<a:Online:1333088499116675154> Online" : "<a:Offline:1333088552958955551> Offline"}`;
         }).join("\n\n"),
         inline: false
     });
@@ -125,6 +125,19 @@ client.once("ready", () => {
     console.log(`Logged in as ${client.user.tag}`);
     updateEmbed();
     setInterval(updateEmbed, 60000);
+
+    client.application.commands.create(
+        new SlashCommandBuilder().setName("ping").setDescription("Check the bot's ping."),
+    );
+});
+
+client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isCommand()) return;
+
+    if (interaction.commandName === "ping") {
+        const ping = client.ws.ping;
+        await interaction.reply(`Pong! Latency is ${ping}ms.`);
+    }
 });
 
 client.on("error", (error) => {
