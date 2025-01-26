@@ -1,25 +1,45 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const { token, channelId } = require("./config.json");
 const fs = require("fs");
+const { status } = require("minecraft-server-util");
 const axios = require("axios");
 
 const embedLogPath = "./embed.json";
 const serverConfig = require("./server.json");
 
-async function getServerStatus(ip, port) {
-    const url = `https://api.mcsrvstat.us/2/${ip}:${port}`;
+async function getBedrockStatus(ip, port) {
     try {
-        const response = await axios.get(url);
-        const jsonData = response.data;
         return {
-            online: jsonData.online || false,
-            players: jsonData.players
-                ? `${jsonData.players.online}/${jsonData.players.max}`
-                : "N/A",
-            version: jsonData.version || "Unknown",
+            online: true,
+            players: "N/A",
+            version: "N/A"
         };
     } catch (error) {
-        console.error(`Error fetching or parsing data from ${url}:`, error.message);
+        console.error(`Error fetching data from Bedrock server ${ip}:${port}:`, error.message);
+        return { online: false, players: "N/A", version: "Unknown" };
+    }
+}
+
+async function getJavaServerStatus(ip, port) {
+    try {
+        const response = await status(ip, port);
+        return {
+            online: true,
+            players: `${response.players.online}/${response.players.max}`,
+            version: response.version.name || "Unknown",
+        };
+    } catch (error) {
+        console.error(`Error fetching data from Java server ${ip}:${port}:`, error.message);
+        return { online: false, players: "N/A", version: "Unknown" };
+    }
+}
+
+async function getServerStatus(ip, port, type) {
+    if (type === "Java") {
+        return getJavaServerStatus(ip, port);
+    } else if (type === "Bedrock") {
+        return getBedrockStatus(ip, port);
+    } else {
         return { online: false, players: "N/A", version: "Unknown" };
     }
 }
@@ -48,42 +68,33 @@ async function updateEmbed() {
         return;
     }
 
-    const embedData = JSON.parse(fs.readFileSync(embedLogPath, "utf-8"));
+    const embedData = fs.existsSync(embedLogPath)
+        ? JSON.parse(fs.readFileSync(embedLogPath, "utf-8"))
+        : { embedId: null };
     let embedId = embedData.embedId;
     let embedMessage;
 
     const mainServerStatuses = await Promise.all(
-        serverConfig.main_servers.map(server => getServerStatus(server.ip, server.port))
+        serverConfig.main_servers.map(server => getServerStatus(server.ip, server.port, server.type))
     );
 
-    const additionalServerStatuses = await Promise.all(
-        serverConfig.additional_information.map(server => getServerStatus(server.ip, server.port))
-    );
+    const currentTime = formatTime(new Date());
 
     const embed = new EmbedBuilder()
         .setTitle("Minecraft Server Status")
-        .setColor("#8b00ff")
+        .setColor("#ffffff")
         .setTimestamp()
-        .setFooter({ text: `Last updated at: ${formatTime(new Date())}` });
+        .setFooter({ text: `Last updated at: ${currentTime}`, iconURL: client.user.avatarURL() })
+        .setThumbnail(client.user.avatarURL());
 
     embed.addFields({
-        name: "Main Servers",
+        name: "Server Status",
         value: mainServerStatuses.map((status, index) => {
             const server = serverConfig.main_servers[index];
-            return `${server.name}: ${status.online ? `🟢 Online\nPlayers: ${status.players}\nVersion: ${status.version}` : "🔴 Offline"}`;
+            return `${server.name}:\n` + 
+                   `IP: \`${server.ip}:${server.port}\`\n` + 
+                   `${status.online ? "🟢 Online" : "🔴 Offline"}`;
         }).join("\n\n"),
-        inline: false
-    });
-
-    embed.addFields({
-        name: "Additional Information",
-        value: `
-        **Proxy:**
-        ${additionalServerStatuses[0].online ? "🟢 Online" : "🔴 Offline"}
-
-        **Backup:**
-        ${additionalServerStatuses[1].online ? "🟢 Online" : "🔴 Offline"}
-        `,
         inline: false
     });
 
